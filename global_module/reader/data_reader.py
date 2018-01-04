@@ -21,10 +21,10 @@ class Data:
         sent_tokenizer = SentenceTokenizer()
         for each_instance in instances:
             instance_split = each_instance.strip().split('\t')
-            data = instance_split[self.data_col]
+            text = instance_split[self.data_col]
             label = instance_split[self.label_col]
-            tokenized_data = sent_tokenizer.tokenize(data)
-            self.data_instance.append(DataInstance(data, tokenized_data, label))
+            tokenized_data = sent_tokenizer.tokenize(text).lower()
+            self.data_instance.append(DataInstance(text, tokenized_data, label))
         return self.data_instance
 
 
@@ -37,18 +37,19 @@ class DataReader:
         self.data_corpus = []
         self.label_corpus = {}
         for each_instance in self.data_obj.data_instance:
-            self.data_corpus.append(each_instance.tokenized_data)
-            if each_instance.label not in self.label_corpus:
-                self.label_corpus[each_instance.label] = len(self.label_corpus)
+            self.data_corpus.append(each_instance.tokenized_text)
+            if each_instance.text_label not in self.label_corpus:
+                self.label_corpus[each_instance.text_label] = len(self.label_corpus)
 
     def run_unigram_vectorizer(self):
         unigram_vectorizer = CountVectorizer(ngram_range=(1, 1), min_df=1)
-        unigram_matrix = unigram_vectorizer.fit_transform(self.data_corpus)
+        unigram_matrix = unigram_vectorizer.fit_transform(self.data_corpus).toarray()
         return unigram_vectorizer, unigram_matrix
 
     def run_bigram_vectorizer(self):
-        self.bigram_vectorizer = CountVectorizer(ngram_range=(2, 2), min_df=1)
-        self.bigram_matrix = self.bigram_vectorizer.fit_transform(self.data_corpus)
+        bigram_vectorizer = CountVectorizer(ngram_range=(2, 2), min_df=1)
+        bigram_matrix = bigram_vectorizer.fit_transform(self.data_corpus).toarray()
+        return bigram_vectorizer, bigram_matrix
 
     def run_custom_ngram_vectorizer(self, ngram_range):
         self.custom_ngram_vectorizer = CountVectorizer(ngram_range=ngram_range, min_df=1)
